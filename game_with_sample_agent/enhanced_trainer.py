@@ -1,11 +1,11 @@
 from game.core import SurvivalGame, GameConfig
-from neural_agent import EnhancedNeuralAgent, SimpleNeuralAgent
+from game.agents import EnhancedNeuralAgent, SimpleNeuralAgent
 import numpy as np
 from gwo import GreyWolfOptimizer
 import time
 
 def enhanced_fitness_function(weights):
-    """Função de fitness para o agente neural melhorado"""
+    """Função de fitness para o agente neural que vê paredes"""
     config = GameConfig()
     
     # Criar agente neural melhorado
@@ -16,7 +16,7 @@ def enhanced_fitness_function(weights):
     for _ in range(3):
         game = SurvivalGame(config, render=False)
         step_count = 0
-        max_steps = 5000000  # Limite mais razoável
+        max_steps = 500000  # Limite mais razoável
         
         while not game.all_players_dead() and step_count < max_steps:
             state = game.get_state(0, include_internals=True)
@@ -28,8 +28,7 @@ def enhanced_fitness_function(weights):
 
     return np.mean(scores)
 
-def test_enhanced_agent(weights, num_tests=10, render=False):
-    """Testa o agente neural melhorado"""
+def test_agent(weights, num_tests=10, render=False):
     config = GameConfig()
     agent = EnhancedNeuralAgent(config, weights)
     scores = []
@@ -120,109 +119,19 @@ def train_enhanced_gwo():
     print("Melhores pesos salvos em 'best_enhanced_weights.npy'")
     
     # Testar o agente treinado
-    test_enhanced_agent(best_weights, num_tests=20, render=False)
+    test_agent(best_weights, num_tests=200, render=False)
     
     return best_weights, best_score
 
-def compare_agents():
-    """Compara o agente simples vs melhorado"""
-    print("\n" + "="*60)
-    print("COMPARAÇÃO: AGENTE SIMPLES vs MELHORADO")
-    print("="*60)
-    
-    config = GameConfig()
-    
-    # Testar agente simples com pesos aleatórios
-    simple_agent = SimpleNeuralAgent(config)
-    simple_scores = []
-    
-    print("\n--- Testando Agente Simples (pesos aleatórios) ---")
-    for i in range(10):
-        game = SurvivalGame(config, render=False)
-        step_count = 0
-        
-        while not game.all_players_dead() and step_count < 2000:
-            state = game.get_state(0, include_internals=True)
-            action = simple_agent.predict(state)
-            game.update([action])
-            step_count += 1
-        
-        simple_scores.append(game.players[0].score)
-    
-    # Testar agente melhorado com pesos aleatórios
-    enhanced_agent = EnhancedNeuralAgent(config)
-    enhanced_scores = []
-    
-    print("\n--- Testando Agente Melhorado (pesos aleatórios) ---")
-    for i in range(10):
-        game = SurvivalGame(config, render=False)
-        step_count = 0
-        
-        while not game.all_players_dead() and step_count < 2000:
-            state = game.get_state(0, include_internals=True)
-            action = enhanced_agent.predict(state)
-            game.update([action])
-            step_count += 1
-        
-        enhanced_scores.append(game.players[0].score)
-    
-    print(f"\nResultados (pesos aleatórios):")
-    print(f"Agente Simples    - Médio: {np.mean(simple_scores):.2f}, Max: {np.max(simple_scores):.2f}")
-    print(f"Agente Melhorado  - Médio: {np.mean(enhanced_scores):.2f}, Max: {np.max(enhanced_scores):.2f}")
-    
-    # Testar agentes treinados se disponíveis
-    try:
-        simple_weights = np.load("best_neural_weights.npy")
-        simple_trained = SimpleNeuralAgent(config, simple_weights)
-        simple_trained_scores = []
-        
-        for i in range(10):
-            game = SurvivalGame(config, render=False)
-            step_count = 0
-            
-            while not game.all_players_dead() and step_count < 5000:
-                state = game.get_state(0, include_internals=True)
-                action = simple_trained.predict(state)
-                game.update([action])
-                step_count += 1
-            
-            simple_trained_scores.append(game.players[0].score)
-        
-        print(f"Agente Simples (treinado) - Médio: {np.mean(simple_trained_scores):.2f}, Max: {np.max(simple_trained_scores):.2f}")
-        
-    except FileNotFoundError:
-        print("Agente simples treinado não encontrado")
-    
-    try:
-        enhanced_weights = np.load("best_enhanced_weights.npy")
-        enhanced_trained = EnhancedNeuralAgent(config, enhanced_weights)
-        enhanced_trained_scores = []
-        
-        for i in range(10):
-            game = SurvivalGame(config, render=False)
-            step_count = 0
-            
-            while not game.all_players_dead() and step_count < 5000:
-                state = game.get_state(0, include_internals=True)
-                action = enhanced_trained.predict(state)
-                game.update([action])
-                step_count += 1
-            
-            enhanced_trained_scores.append(game.players[0].score)
-        
-        print(f"Agente Melhorado (treinado) - Médio: {np.mean(enhanced_trained_scores):.2f}, Max: {np.max(enhanced_trained_scores):.2f}")
-        
-    except FileNotFoundError:
-        print("Agente melhorado treinado não encontrado")
 
-def demo_enhanced_agent():
+def demo_agent():
     """Demonstra o agente melhorado treinado"""
     try:
         best_weights = np.load("best_enhanced_weights.npy")
         print("Carregando pesos do agente melhorado...")
         
         print("\n--- Demonstração Visual do Agente Melhorado ---")
-        test_enhanced_agent(best_weights, num_tests=3, render=True)
+        test_agent(best_weights, num_tests=1, render=True)
         
     except FileNotFoundError:
         print("Arquivo de pesos do agente melhorado não encontrado.")
@@ -233,11 +142,11 @@ if __name__ == "__main__":
     
     if len(sys.argv) > 1:
         if sys.argv[1] == "demo":
-            demo_enhanced_agent()
+            demo_agent()
         elif sys.argv[1] == "test":
             try:
                 weights = np.load("best_enhanced_weights.npy")
-                test_enhanced_agent(weights, num_tests=30, render=False)
+                test_agent(weights, num_tests=30, render=False)
             except FileNotFoundError:
                 print("Arquivo de pesos não encontrado.")
         elif sys.argv[1] == "compare":
