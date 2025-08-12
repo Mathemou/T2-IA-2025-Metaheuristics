@@ -1,5 +1,6 @@
 import numpy as np
 
+# Classe GeneticAlgorithm implementa o algoritmo genético
 class GeneticAlgorithm:
     def __init__(self, population_size: int, gene_length: int, mutation_rate: float, crossover_rate: float):
         self.population_size = population_size

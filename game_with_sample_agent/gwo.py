@@ -1,5 +1,7 @@
 import numpy as np
 
+
+# Classe GreyWolfOptimizer implementa o algoritmo de otimização por lobos cinzentos
 class GreyWolfOptimizer:
     def __init__(self, fitness_function, dim, n_wolves=20, max_iter=100, bounds=None):
         self.fitness_function = fitness_function
@@ -53,6 +55,6 @@ class GreyWolfOptimizer:
 
                     self.positions[i][j] = np.clip((X1 + X2 + X3) / 3, self.lower_bound, self.upper_bound)
 
-            print(f"Iter {iter}: Melhor Score = {alpha_score:.2f}")
+            print(f"Iter {iter}: Melhor Score = {alpha_score:.2f} Média do alfa, beta e delta = {np.mean([alpha_score, beta_score, delta_score]):.2f}")
 
         return alpha, alpha_score
