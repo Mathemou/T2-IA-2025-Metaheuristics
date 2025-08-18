@@ -76,7 +76,6 @@ def test_agent(weights, num_tests=10, render=False):
     
     print(f"\n--- Comparação com Benchmarks ---")
     
-    # Comparação com agente neural do Bonela
     if np.mean(scores) > bonela_neural_mean:
         print(f"🟢 Agente Neural GWO foi {((np.mean(scores) - bonela_neural_mean) / bonela_neural_mean) * 100:.2f}% melhor que o Agente Neural Genético do Bonela (média: {bonela_neural_mean:.2f})")
     else:
@@ -231,20 +230,16 @@ def graph_agent_performance(weights, num_games=30, compare_benchmarks=False):
     print(f"Desvio Padrão: {std_score:.2f}")
     
     if compare_benchmarks:
-        # Dados dos benchmarks (usando os primeiros 'num_games' resultados se necessário)
         bonela_rule_based_genetic_result = [12.69, 16.65, 6.97, 2.79, 15.94, 10.22, 21.90, 4.35, 6.22, 9.95, 19.94, 20.56, 15.74, 17.68, 7.16, 15.68, 2.37, 15.43, 15.13, 22.50, 25.82, 15.85, 17.02, 16.74, 14.69, 11.73, 13.80, 15.13, 12.35, 16.19]
         bonela_neural_agent_genetic_result = [38.32, 54.53, 61.16, 27.55, 16.08, 26.00, 25.33, 18.30, 39.76, 48.17, 44.77, 47.54, 75.43, 23.68, 16.83, 15.81, 67.17, 53.54, 33.59, 49.24, 52.65, 16.35, 44.05, 56.59, 63.23, 43.96, 43.82, 19.19, 28.36, 18.65]
         bonela_human_result = [27.34, 17.63, 39.33, 17.44, 1.16, 24.04, 29.21, 18.92, 25.71, 20.05, 31.88, 15.39, 22.50, 19.27, 26.33, 23.67, 16.82, 28.45, 12.59, 33.01, 21.74, 14.23, 27.90, 24.80, 11.35, 30.12, 17.08, 22.96, 9.41, 35.22]
         
-        # Ajustar os dados dos benchmarks para o número de jogos solicitado
         bonela_rule = bonela_rule_based_genetic_result[:num_games] if num_games <= 30 else bonela_rule_based_genetic_result
         bonela_neural = bonela_neural_agent_genetic_result[:num_games] if num_games <= 30 else bonela_neural_agent_genetic_result
         bonela_human = bonela_human_result[:num_games] if num_games <= 30 else bonela_human_result
         
-        # Criar figura comparativa mais detalhada
         plt.figure(figsize=(15, 12))
         
-        # Gráfico 1: Comparação de desempenho linha por linha
         plt.subplot(3, 2, 1)
         games_range = range(1, len(scores) + 1)
         plt.plot(games_range, scores, 'b-', marker='o', markersize=5, linewidth=2, label='Agente Neural GWO', alpha=0.8)
@@ -262,7 +257,6 @@ def graph_agent_performance(weights, num_games=30, compare_benchmarks=False):
         plt.legend()
         plt.grid(True, alpha=0.3)
         
-        # Gráfico 2: Box Plot comparativo
         plt.subplot(3, 2, 2)
         data_to_plot = [scores]
         labels = ['GWO Neural']
@@ -286,7 +280,6 @@ def graph_agent_performance(weights, num_games=30, compare_benchmarks=False):
         plt.ylabel('Score')
         plt.grid(True, alpha=0.3)
         
-        # Gráfico 3: Histograma comparativo
         plt.subplot(3, 2, 3)
         plt.hist(scores, bins=15, alpha=0.7, color='blue', label='GWO Neural', edgecolor='black')
         if len(bonela_neural) >= len(scores):
@@ -298,7 +291,6 @@ def graph_agent_performance(weights, num_games=30, compare_benchmarks=False):
         plt.legend()
         plt.grid(True, alpha=0.3)
         
-        # Gráfico 4: Barras com médias
         plt.subplot(3, 2, 4)
         methods = ['GWO Neural']
         means = [mean_score]
@@ -326,34 +318,12 @@ def graph_agent_performance(weights, num_games=30, compare_benchmarks=False):
         plt.ylabel('Score Médio')
         plt.xticks(rotation=45)
         
-        # Adicionar valores nas barras
         for bar, mean_val in zip(bars, means):
             plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1, f'{mean_val:.1f}', 
                     ha='center', va='bottom', fontweight='bold')
         
         plt.grid(True, alpha=0.3, axis='y')
         
-        # Gráfico 5: Média móvel
-        plt.subplot(3, 2, 5)
-        window_size = min(5, len(scores)//2) if len(scores) > 5 else 2
-        
-        # Calcular médias móveis
-        gwo_moving_avg = [np.mean(scores[max(0, i-window_size+1):i+1]) for i in range(len(scores))]
-        plt.plot(games_range, gwo_moving_avg, 'b-', linewidth=3, label=f'GWO (média móvel {window_size})')
-        
-        if len(bonela_neural) >= len(scores):
-            neural_moving_avg = [np.mean(bonela_neural[max(0, i-window_size+1):i+1]) for i in range(len(scores))]
-            plt.plot(games_range, neural_moving_avg, 'r-', linewidth=2, label=f'Neural Gen. (média móvel {window_size})')
-        
-        plt.title('Tendência de Desempenho (Média Móvel)', fontsize=12, fontweight='bold')
-        plt.xlabel('Número do Jogo')
-        plt.ylabel('Score (Média Móvel)')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        
-        # Gráfico 6: Estatísticas resumo
-        plt.subplot(3, 2, 6)
-        plt.axis('off')
         
         # Criar tabela de estatísticas
         stats_text = f"""

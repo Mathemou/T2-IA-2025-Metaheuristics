@@ -178,18 +178,14 @@ class NeuralAgent(Agent):
     
     def predict(self, state: np.ndarray) -> int:
         """Prediz a ação baseada no estado atual"""
-        # Preparar entrada da rede neural
         grid_flat = state[:self.grid_size * self.grid_size]
         player_y = state[-2]  # Posição Y normalizada
         player_speed = state[-1] if len(state) > self.grid_size * self.grid_size + 1 else 0.0
         
-        # Concatenar todas as features
         neural_input = np.concatenate([grid_flat, [player_y, player_speed]])
         
-        # Obter probabilidades das ações
         action_probs = self._forward(neural_input)
         
-        # Escolher a ação com maior probabilidade
         action = np.argmax(action_probs)
         
         return int(action)
@@ -213,7 +209,6 @@ class EnhancedNeuralAgent(Agent):
         self.config = config
         self.grid_size = config.sensor_grid_size
 
-        # Arquitetura melhorada com mais features
         grid_features = self.grid_size * self.grid_size  # 25 - grid de obstáculos
         position_features = 1  # 1 - posição Y normalizada
         speed_features = 1     # 1 - velocidade do jogo
@@ -224,10 +219,7 @@ class EnhancedNeuralAgent(Agent):
         self.hidden2_size = 16   # Segunda camada oculta
         self.output_size = 3     # 3 ações
 
-        # Número total de pesos
-        # input -> hidden1: input_size * hidden1_size + hidden1_size (bias)
-        # hidden1 -> hidden2: hidden1_size * hidden2_size + hidden2_size (bias)
-        # hidden2 -> output: hidden2_size * output_size + output_size (bias)
+        
         self.total_weights = (
             self.input_size * self.hidden1_size +
             self.hidden1_size +
@@ -251,7 +243,6 @@ class EnhancedNeuralAgent(Agent):
         return self.total_weights
 
     def _extract_wall_features(self, state):
-        """Extrai features relacionadas às paredes"""
         player_y_norm = state[-2]
         player_y_actual = player_y_norm * self.config.screen_height
 
@@ -262,7 +253,7 @@ class EnhancedNeuralAgent(Agent):
         norm_dist_top = np.clip(distance_to_top / max_distance, 0, 1)
         norm_dist_bottom = np.clip(distance_to_bottom / max_distance, 0, 1)
 
-        danger_threshold = 50  # pixels
+        danger_threshold = 50 
         danger_top = 1.0 if distance_to_top < danger_threshold else 0.0
         danger_bottom = 1.0 if distance_to_bottom < danger_threshold else 0.0
 
@@ -270,21 +261,18 @@ class EnhancedNeuralAgent(Agent):
 
     def _extract_weights(self):
         idx = 0
-        # input -> hidden1
         w1_size = self.input_size * self.hidden1_size
         W1 = self.weights[idx:idx + w1_size].reshape(self.input_size, self.hidden1_size)
         idx += w1_size
         b1 = self.weights[idx:idx + self.hidden1_size]
         idx += self.hidden1_size
 
-        # hidden1 -> hidden2
         w2_size = self.hidden1_size * self.hidden2_size
         W2 = self.weights[idx:idx + w2_size].reshape(self.hidden1_size, self.hidden2_size)
         idx += w2_size
         b2 = self.weights[idx:idx + self.hidden2_size]
         idx += self.hidden2_size
 
-        # hidden2 -> output
         w3_size = self.hidden2_size * self.output_size
         W3 = self.weights[idx:idx + w3_size].reshape(self.hidden2_size, self.output_size)
         idx += w3_size
@@ -297,14 +285,11 @@ class EnhancedNeuralAgent(Agent):
 
     def _forward(self, state):
         W1, b1, W2, b2, W3, b3 = self._extract_weights()
-        # Primeira camada oculta
         z1 = np.dot(state, W1) + b1
         a1 = self._relu(z1)
-        # Segunda camada oculta
         z2 = np.dot(a1, W2) + b2
         a2 = self._relu(z2)
-        # Saída
-        z3 = np.dot(a2, W3) + b3
+        z3 = np.dot(a2, W3) + b3 #Saída
         return z3
 
     def predict(self, state: np.ndarray) -> int:
