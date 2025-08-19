@@ -62,6 +62,7 @@ def test_agent(weights, num_tests=10, render=False):
     print(f"Score Máximo: {np.max(scores):.2f}")
     print(f"Score Mínimo: {np.min(scores):.2f}")
     print(f"Desvio Padrão: {np.std(scores):.2f}")
+    print(f"Lista de resultados: {[f'{s:.2f}' for s in scores]}")
 
     return scores
 
