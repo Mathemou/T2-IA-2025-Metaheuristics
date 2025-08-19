@@ -32,10 +32,48 @@ def test_agent(weights, num_tests=10, render=False):
     config = GameConfig()
     agent = EnhancedNeuralAgent(config, weights)
     scores = []
+    
+    print(f"\n--- Testando Agente Neural ({num_tests} jogos) ---")
+    
+    for _ in trange(num_tests, desc="Testando agente"):
+        game = SurvivalGame(config, render=render)
+        
+        step_count = 0
+        max_steps = 100000000
+        
+        while not game.all_players_dead() and step_count < max_steps:
+            state = game.get_state(0, include_internals=True)
+            action = agent.predict(state)
+            
+            player = game.players[0]
+            if player.alive:
+                old_y = player.y
+            
+            game.update([action])
+            step_count += 1
+            
+            if render and game.players[0].alive:
+                game.render_frame()
+                
+        scores.append(game.players[0].score)
+    
+    print(f"\nResultados:")
+    print(f"Score Médio: {np.mean(scores):.2f}")
+    print(f"Score Máximo: {np.max(scores):.2f}")
+    print(f"Score Mínimo: {np.min(scores):.2f}")
+    print(f"Desvio Padrão: {np.std(scores):.2f}")
+
+    return scores
+
+
+def test_and_compare_agents(weights, num_tests=10, render=False):
+    config = GameConfig()
+    agent = EnhancedNeuralAgent(config, weights)
+    scores = []
     wall_deaths = 0
     obstacle_deaths = 0
     
-    print(f"\n--- Testando Agente Neural Melhorado ({num_tests} jogos) ---")
+    print(f"\n--- Testando Agente Neural ({num_tests} jogos) ---")
     
     for _ in trange(num_tests, desc="Testando agente"):
         game = SurvivalGame(config, render=render)
@@ -411,6 +449,16 @@ if __name__ == "__main__":
             try:
                 weights = np.load("best_weights.npy")
                 test_agent(weights, num_tests=num_tests, render=False)
+            except FileNotFoundError:
+                print("Arquivo de pesos não encontrado.")
+        elif sys.argv[1] == "test_compare":
+            if len(sys.argv) > 2:
+                num_tests = int(sys.argv[2])
+            else:
+                num_tests = 30
+            try:
+                weights = np.load("best_weights.npy")
+                test_and_compare_agents(weights, num_tests=num_tests, render=False)
             except FileNotFoundError:
                 print("Arquivo de pesos não encontrado.")
         elif sys.argv[1] == "compare":
